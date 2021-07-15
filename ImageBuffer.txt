@@ -1,0 +1,59 @@
+vec3 hashedWave(vec2 rg, float time, float magnitude, float b)
+{
+    vec3 result;
+    result = vec3(cos(time * rg * magnitude),b);
+    return result;
+}
+
+vec4 drawCircle(vec2 loc, vec2 center , float radius, vec4 currentCol, vec4 desiredCol)
+{
+//efficient drawing of circle instead of using float dist = length(loc - center);
+// if(dist <= radius)  
+    vec2 diff = loc - center;
+    if (dot(diff,diff) <= radius * radius)
+       {
+            return vec4(desiredCol);
+        }
+        else
+        {
+            return currentCol;
+        }
+}
+
+
+
+
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    // Normalized pixel coord with respect to one dimension to avoid ellipses.
+    vec2 uv = fragCoord/iResolution.yy;
+    //hard coded center for my screen
+    vec2 centerScreen = vec2(.9,0.5);
+//    float radius = cos(iTime * .25);
+    float radius = .25;
+    vec4 desiredCol = vec4(.92,.92,.92,1.0);
+    vec4 circleFinalCol;
+    //keep background
+    vec3 backgroundCol = vec3(1.0,1.0,1.0);
+    vec3 colorPosLeft = vec3(cos(iTime * uv.yx * 3.0 ), .5);
+    vec3 colorPosRight = hashedWave(uv,iTime,3.0, 0.25 );
+    vec3 splitCol;
+    vec3 tempCol = vec3(uv, .25);
+    //Need to make a function that splits the screen at some point
+    if(fragCoord.x < iResolution.x / 2.0)
+    {
+        fragColor = vec4(vec3(colorPosLeft * tempCol), 1.0);
+    }
+    else
+    {
+       //standardish gradient
+//      fragColor = vec4(mix(colorPosRight, tempCol, backgroundCol),1.0);
+    //moving box creation with the current effects being primarily blue scale. Wait long enough you will see the cos ripple.
+        fragColor = vec4(colorPosRight / tempCol, 1.0);
+    }
+    //calculated at the end so we can see the circle.
+    circleFinalCol = vec4(drawCircle(uv, centerScreen, radius, fragColor, desiredCol));
+    fragColor = circleFinalCol;
+
+}
