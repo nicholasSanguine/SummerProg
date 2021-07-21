@@ -4,20 +4,60 @@ vec3 hashedWave(vec2 rg, float time, float magnitude, float b)
     result = vec3(cos(time * rg * magnitude),b);
     return result;
 }
+//given our passed vec2 in [-1,+1] space we bring it to [0,+1] space and translate to color for our purposes
 
-vec4 drawCircle(vec2 loc, vec2 center , float radius, vec4 currentCol, vec4 desiredCol)
+vec2 barrelDistortion(vec2 loc, float magnitude, float radius)
+{
+    float theta = atan(loc.y,loc.x);
+    radius = pow(radius, magnitude);
+    loc.x = radius * cos(theta);
+    loc.y = radius * sin(theta);
+    
+    return 0.5 * (loc + 1.0);
+}
+
+//Transfer relative position (x or y coord) with the given axis (x or y) 
+//relative to axis itself if you want down the middle pass in .5, .25 for quarter of the screen, etc.
+//Multiplication costs less to do then division is why we do this.
+bool splitScreen(float relativePos, float axisSplit, float sectionSplit)
+{
+    return (relativePos < axisSplit * sectionSplit);
+}
+
+//Currently displays desired color if you are within the circle & in the top right or top left of the circle
+//More to come with tinkering with this function.
+vec4 drawSplitCircle(vec2 loc, vec2 center , float radius, vec4 currentCol, vec4 desiredColOne, vec4 desiredColTwo)
 {
 //efficient drawing of circle instead of using float dist = length(loc - center);
 // if(dist <= radius)  
     vec2 diff = loc - center;
+
     if (dot(diff,diff) <= radius * radius)
        {
-            return vec4(desiredCol);
+       //if left side of the screen
+           if(splitScreen(loc.x, center.x, 1.0))
+                {
+                    //if bottom left of the screen
+                    if(splitScreen(loc.y, center.y, 1.0))
+                        return desiredColOne;
+                    //if top left
+                    else
+                        return desiredColOne * (vec4(1.0,0.0,1.0,1.0) * vec4(loc.y, 0.0, loc.x,1.0));
+                }
+                //if right side
+           if(!splitScreen(loc.x, center.x, 1.0))
+               {
+                   //if top right
+                   if(!splitScreen(loc.y, center.y, 1.0))
+                   {
+                       return desiredColTwo;
+                   }
+                   else
+                   //if bottom right
+                   return desiredColTwo * vec4(0.0,1.0,0.0,1.0);
+               }
         }
-        else
-        {
-            return currentCol;
-        }
+    return currentCol * vec4(0.92,0.92,0.92,1.0);
 }
 
 
@@ -29,31 +69,46 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // Normalized pixel coord with respect to one dimension to avoid ellipses.
     vec2 uv = fragCoord/iResolution.yy;
     //hard coded center for my screen
-    vec2 centerScreen = vec2(.9,0.5);
-//    float radius = cos(iTime * .25);
-    float radius = .25;
-    vec4 desiredCol = vec4(.92,.92,.92,1.0);
-    vec4 circleFinalCol;
-    //keep background
-    vec3 backgroundCol = vec3(1.0,1.0,1.0);
-    vec3 colorPosLeft = vec3(cos(iTime * uv.yx * 3.0 ), .5);
+    vec2 centerScreen = vec2(.89,0.5);
+    float radius = cos(iTime *  .25);
+    float magnitude = cos(iTime);
+    //due to our changing circle being from a cos wave it dips into the negatives once in a while
+    //these if statements are how I decided to correct for it.
+    vec3 colorPosLeft = hashedWave(uv.yx, iTime, 3.0, 0.5);
     vec3 colorPosRight = hashedWave(uv,iTime,3.0, 0.25 );
+    const float maxRadius = .25;
+    if (radius >= maxRadius)
+    {
+        radius = maxRadius;
+    }
+    if(radius <= -maxRadius)
+    {
+        radius = -maxRadius;
+    }
+//    float radius = .25;
+    vec4 desiredCol = vec4(hashedWave(uv / vec2(0.92,0.92), iTime, 2.5, .8), 1.0);
+    vec4 circleFinalCol;
+    
+
     vec3 splitCol;
     vec3 tempCol = vec3(uv, .25);
     //Need to make a function that splits the screen at some point
-    if(fragCoord.x < iResolution.x / 2.0)
+    if(splitScreen(fragCoord.x, iResolution.x , 0.5))
     {
         fragColor = vec4(vec3(colorPosLeft * tempCol), 1.0);
     }
     else
     {
-       //standardish gradient
-//      fragColor = vec4(mix(colorPosRight, tempCol, backgroundCol),1.0);
     //moving box creation with the current effects being primarily blue scale. Wait long enough you will see the cos ripple.
         fragColor = vec4(colorPosRight / tempCol, 1.0);
     }
     //calculated at the end so we can see the circle.
-    circleFinalCol = vec4(drawCircle(uv, centerScreen, radius, fragColor, desiredCol));
+    circleFinalCol = vec4(drawSplitCircle(uv, centerScreen, radius, fragColor, desiredCol, vec4(colorPosLeft, 1.0)));
     fragColor = circleFinalCol;
-
+    //using barrelDistortion as a color alteration passing uv and swizzled uv.
+//    fragColor +=vec4(barrelDistortion(uv,magnitude, radius),0.0,1.0);
+//    fragColor -= vec4(barrelDistortion(uv.yx, magnitude,radius),0.0,1.0);
+//  fragColor *= vec4(barrelDistortion(uv.xy, magnitude,radius),0.0,1.0);
+//    fragColor /= vec4(barrelDistortion(uv.yx, magnitude,radius),0.0,1.0);
+//    fragColor = mix(circleFinalCol,vec4(barrelDistortion(uv.yx, magnitude,radius), 0.0,1.0), 0.5f);
 }
