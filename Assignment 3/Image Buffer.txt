@@ -32,11 +32,9 @@ void calcViewport(out vec2 viewport, out vec2 ndc, out vec2 uv,
 float hitSphere(in vec4 rayDirection, in vec4 rayOrigin, float radius, vec3 center)
 {
     vec3 dist = rayOrigin.xyz - center;
-    float lengths = length(rayDirection);
-    float a = lengths * lengths;
+    float a = dot(rayDirection, rayDirection);
     float half_b = dot(dist, rayDirection.xyz);
-    lengths = length(dist);
-    float c = lengths * lengths - radius * radius;
+    float c = dot(dist,dist) - radius * radius;
     float doesHit = half_b * half_b - a * c;
     
     if(doesHit < 0.0)
@@ -96,14 +94,14 @@ vec4 calcColor(in sRay ray)
     float vari = hitSphere(ray.direction, ray.origin,0.5f, vec3(0,0,-1));
     if (vari > 0.0)
     {
-        vec3 normal = vec3(atRay(vari, ray));
+        vec3 normal = vec3(atRay(vari , ray)) - vec3(0,0,-1);
         return vec4(0.5 * vec3(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0), 1.0);
     }
 // our formula for lerp is still (1.0 - t) * white(starting color) + t * blue(ending color).
     vec4 blue = vec4(0.5,0.7,1.0,1.0);
     vec4 white = vec4(1.0,1.0,1.0,1.0);
-    float t = 0.5f * (ray.direction.y + 1.0f);
-    return (1.0 - t) * white + t * blue;
+    vari = 0.5f * (ray.direction.y + 1.0f);
+    return (1.0 - vari) * white + vari * blue;
 }
 
 
