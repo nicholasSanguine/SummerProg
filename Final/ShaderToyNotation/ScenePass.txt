@@ -156,7 +156,7 @@ vec4 calcColor(in sRay ray, in float time, in vec2 resolution, in vec2 fragCoord
     {
         if(splitScreen(fragCoord.x, resolution.x, 0.5))
         {
-            return vec4(1.0,0.0,0.0,1.0);
+            return vec4(hashedWave(vec2(0.92,0.42), time, 5.45, 0.5),1.0);
         }
         //normalized front face of the sphere(reason we subtract the vec3 sphere pos)
         vec3 normal = vec3(atRay(vari , ray)) - vec3(0,0,-1);
@@ -193,7 +193,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     calcRay(ray,viewport, focalLength);
 
     // color
-    fragColor = calcColor(ray, iTime, iResolution.xy, fragCoord);
+    vec2 uvOne = fragCoord / iChannelResolution[0].xy;
+    fragColor = calcColor(ray, iTime, iResolution.xy, fragCoord) * vec4(0.5, 0.5,0.5, 1.0);
+//    fragColor = texture(iChannel0, uvOne);
 
 }
 

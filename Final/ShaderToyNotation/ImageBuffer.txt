@@ -1,0 +1,18 @@
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    vec2 uv = fragCoord / iChannelResolution[0].xy;
+    vec2 uvTwo = fragCoord / iChannelResolution[1].xy;
+    vec2 uvThree = fragCoord / iChannelResolution[2].xy;
+	//SobelPass One
+    vec4 imageOne =texture(iChannel0, uv);
+	//SobelPass Two    
+    vec4 imageTwo =texture(iChannel1, uvTwo);
+        // Base Image
+    vec4 imageThree =texture(iChannel2, uvThree);
+    
+    fragColor = imageOne;
+    fragColor = imageTwo;
+//    fragColor = imageThree;
+//    fragColor = imageTwo * imageThree;
+//    fragColor = imageThree;
+}

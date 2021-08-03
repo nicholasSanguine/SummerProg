@@ -1,0 +1,23 @@
+vec4 sobelOperator(vec4 image)
+{
+    return vec4(0.,0.,0.,1.0);
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+vec2 uv = fragCoord / iChannelResolution[0].xy;
+
+/*SOBEL OPERATOR TWO
+    |+1 +2  +1|
+    | 0  0  0 |
+    |-1 -2  -1|
+
+*/
+    float a = 1.0;
+    float b = 2.0;
+    mat3 sobelTwo = mat3(  a,   b,   a,
+                         0.0, 0.0, 0.0,
+                          -a,  -b, -a );
+    vec4 currentImage = texture(iChannel0, uv); 
+    fragColor = vec4(currentImage.xyz * sobelTwo, 1.0); 
+}
