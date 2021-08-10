@@ -1,0 +1,15 @@
+#version 450
+
+layout(location = 0)
+	in vec4 aPosition;
+out vec4 variPosition;
+uniform vec4 uMouseButton;
+uniform mat4 uModelMatrix, uViewProjMatrix;
+out vec4 mousePosition;
+void main()
+{
+	
+	variPosition = uViewProjMatrix * uModelMatrix *aPosition;
+	mousePosition = uViewProjMatrix * uModelMatrix *uMouseButton;
+	gl_Position = aPosition;
+}

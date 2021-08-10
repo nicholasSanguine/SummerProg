@@ -1,0 +1,22 @@
+#version 450
+layout(location = 0)
+	out vec4 cFragColor;
+in vec4 variPosition;	
+
+uniform vec2 uScreenResolution;
+in vec4 mousePosition;
+//Currently just makes a flashing button.
+//Issue seems to be spacing I am not sure how to get it to be based on pixels on screen.
+void main()
+{
+	cFragColor = vec4(1.0,0.5,0.0,1.0);
+	
+	if(mousePosition.z< uScreenResolution.x / 2.0)
+	{
+		if(variPosition.x < mousePosition.x)
+		{
+			cFragColor = vec4(0.0,0.5,1.0,1.0);
+		}
+	}
+	
+}
