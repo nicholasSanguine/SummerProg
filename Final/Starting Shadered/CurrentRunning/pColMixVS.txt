@@ -1,0 +1,13 @@
+#version 450
+
+layout(location = 0)
+	in vec4 aPosition;
+uniform mat4 uModelMatrix, uViewProjMatrix;
+
+out vec2 vTexCoord;
+void main()
+{
+	vec4 tempPos = uViewProjMatrix * uModelMatrix *aPosition;
+	gl_Position = tempPos;
+	vTexCoord = tempPos.xy * 0.5 + 0.5;
+}

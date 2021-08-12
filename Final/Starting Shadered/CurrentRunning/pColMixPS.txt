@@ -1,0 +1,32 @@
+#version 450
+
+layout(location = 0)
+	out vec4 cFragColor;
+uniform sampler2D aTexture;
+in vec2 vTexCoord;
+
+//quickly layer color over the sphere to more directly fill
+//our image with the given color.
+vec4 colorDoctoring(in vec4 col)
+{
+	vec4 rgLayer = vec4(1.0,1.0,0.0,1.0);
+	
+	//I prefer the green showing more on this is why I mix
+	//this way, if you want red bring the number as far as 
+	// negative one.
+	float mixVari = 0.65;
+	vec4 newCol = mix(rgLayer,col, mixVari);
+	
+	return newCol;
+}
+
+
+void main()
+{
+	vec4 texCol = texture(aTexture,vTexCoord);
+	cFragColor = texCol;
+	//Current state of this function does not play nice
+	//potential solution could be grayScaling the image
+	//in function. Then in display bringing it all together.
+//	cFragColor = colorDoctoring(texCol);
+}
