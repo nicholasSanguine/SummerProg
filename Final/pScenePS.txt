@@ -1,0 +1,25 @@
+#version 450
+
+layout(location = 0)
+	out vec4 cFragColor;
+	
+in vec4 variPosition;	
+in vec2 vTexCoord;
+uniform bvec4 keysWASD;
+uniform sampler2D uTexture;
+layout(binding = 1)
+	uniform sampler2D uTextureTwo;
+layout(binding = 2)
+	uniform sampler2D uAudio;
+
+void main()
+{
+	//cFragColor = changeColWASD(vec4(0.25));
+	//raw output of our FFT data as gray scaled color.
+	vec4 fftCol = vec4(texture(uAudio, vTexCoord).x);
+	
+   cFragColor = fftCol;
+   cFragColor = vec4(fftCol.x,0.0,0.0,1.0);
+//   cFragColor = vec4(0.0,0.0,1.0,1.0);
+   
+}

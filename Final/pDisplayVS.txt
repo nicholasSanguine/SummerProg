@@ -1,0 +1,14 @@
+#version 450
+
+layout(location = 0)
+	in vec4 aPosition;
+uniform mat4 uModelMatrix, uViewProjMatrix;
+
+out vec2 vTexCoord;
+//When we use our ViewProjMatrix to put the image into the frustum
+//it makes the image incorrect in scaling outright currently I am not sure why.
+void main()
+{
+	gl_Position = uModelMatrix * aPosition;
+	vTexCoord = aPosition.xy * 0.5 + 0.5;
+}
