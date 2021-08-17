@@ -3,30 +3,41 @@
 layout(location = 0)
 	out vec4 cFragColor;
 uniform sampler2D aTexture;
+uniform vec2 uResolution;
 in vec2 vTexCoord;
 
-//quickly layer color over the sphere to more directly fill
-//our image with the given color.
-vec4 colorDoctoring(in vec4 col)
+
+float giveLum(in vec4 col)
 {
-	vec4 rgLayer = vec4(1.0,1.0,0.0,1.0);
-	
-	//I prefer the green showing more on this is why I mix
-	//this way, if you want red bring the number as far as 
-	// negative one.
-	float mixVari = 0.55;
-	vec4 newCol = mix(rgLayer,col, mixVari);
-	
-	return newCol;
+	//Applying luminance.
+	float lum = col.r * 0.2126 + col.g * 0.7152 + col.b * 0.0722;
+	return lum;
 }
 
+//make the sphere bigger and pronounce the individual presses of
+//our value more
+//https://www.geeks3d.com/20140213/glsl-shader-library-fish-eye-and-dome-and-barrel-distortion-post-processing-filters/2/
+vec2 barrelDist(vec2 loc)
+{
+	float theta = atan(loc.y,loc.x);
+	float radius = length(loc);
+	//Normal equation uses pow(radius,x) I think to the pow
+	//of two is enough.
+	radius = radius * radius;
+	loc.x = radius * cos(theta);
+	loc.y = radius * sin(theta);
+	return 0.5 * (loc + 1.0);
+}
 
 void main()
-{
+{ 
 	vec4 texCol = texture(aTexture,vTexCoord);
 	cFragColor = texCol;
-	//Current state of this function does not play nice
-	//potential solution could be grayScaling the image
+	vec2 distortedUV = vTexCoord * 2.0 - 1.0;
+	vec4 distTexture = texture(aTexture,barrelDist(distortedUV));
+	vec4 lum = vec4(giveLum(texCol));
 	//in function. Then in display bringing it all together.
-//	cFragColor = colorDoctoring(texCol);
+	//DEBUGGING OUTPUT
+	cFragColor = lum;
+	cFragColor = distTexture;
 }
