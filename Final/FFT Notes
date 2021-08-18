@@ -1,0 +1,12 @@
+Sources: https://www.youtube.com/watch?v=E8HeD-MUrjY
+https://www.youtube.com/watch?v=toj_IoCQE-4
+Qualifications of source: https://www.eigensteve.com/
+
+
+The FFT data I am working with I felt requires a baseline of what the Fast Fourier Transform is. As the function states it is a transformation matrix, but it is also
+THEE matrix to learn going forward I want to dedicate more time into it. Currently some applications are Image and Audio Compression (I distorted based on this FFT data) what
+makes it make a lot of sense specifically in my eyes with graphics as an efficient matrix. By default it is O(n log(n)) so it is basically linear as you go through all the pixels
+on a screen it continues to be extremely cheap. One fun fact from me looking into this was the fact that Gauss apparently gets credit for founding his own version for mental 
+mathematics. Honeslty an extremely impressive mathematician to look back towards.
+Given it's use as a denoiser I may in the future try using this in place of blur to see if that makes a difference.
+The way it works from what I can tell is reordering a large matrix, the example given in the videos being a F_1024 into a few cheaper sets of matrix multiplication.
