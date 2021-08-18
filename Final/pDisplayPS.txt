@@ -5,7 +5,12 @@ layout(location = 0)
 uniform sampler2D aTexture;
 uniform vec2 uResolution;
 in vec2 vTexCoord;
+uniform float uTime;
 
+vec3 hashedWave(vec3 col, float time, float magnitude)
+{
+    return vec3(cos(time * col.rg * magnitude) * 0.5 + 0.5,col.b);
+}
 
 float giveLum(in vec4 col)
 {
@@ -29,15 +34,70 @@ vec2 barrelDist(vec2 loc)
 	return 0.5 * (loc + 1.0);
 }
 
+
+vec4 calcFinalCol(vec4 texCol,vec4 cTexCol, vec4 dTexCol,vec4 cdTexCol, float magnitude, float time)
+{
+	//Base vari
+	vec4 lum = vec4(giveLum(texCol));
+	vec4 hashed = vec4(hashedWave(texCol.xyz, time, magnitude),texCol.z);
+	
+	//Decompressed Vari
+	vec4 cLum = vec4(giveLum(cTexCol));
+	vec4 cHashed = vec4(hashedWave(cTexCol.xyz, time, magnitude),cTexCol.z);
+	
+	//Distorted Vari
+	vec4 dLum = vec4(giveLum(dTexCol));
+	vec4 dHashed = vec4(hashedWave(dTexCol.xyz, time, magnitude),dTexCol.z);
+	
+	//Decompressed & Distorted Vari
+	vec4 cdLum = vec4(giveLum(cdTexCol));
+	vec4 cdHashed = vec4(hashedWave(cdTexCol.xyz, time, magnitude),cdTexCol.z);
+	
+	//Base outputs
+	return texCol;
+//	return dTexCol;
+	//Decompressed UV
+	//Makes 4 orbs on the screen to take up the space [-1,1]
+	//Quadruples tempo
+//	return cTexCol;
+	//More bass into our audio
+//	return cdTexCol;
+	
+	//Luminance Outputs
+	//Luminance acts as a dampener oddly enough
+//	return lum;
+//	return dLum;
+//	return cLum;
+//	return cdLum;
+	//hashedWave Outputs
+	//hashedWave variable Magnitude changes the pitch GREATLY
+//	return hashed;
+//	return dHashed;
+//	return cHashed;
+//	return cdHashed;
+}
+
+
 void main()
 { 
+
+	float magnitude = 10.0;
+	//PRIMING OUTPUTS
+	
+	//Compressed
 	vec4 texCol = texture(aTexture,vTexCoord);
-	cFragColor = texCol;
-	vec2 distortedUV = vTexCoord * 2.0 - 1.0;
-	vec4 distTexture = texture(aTexture,barrelDist(distortedUV));
-	vec4 lum = vec4(giveLum(texCol));
-	//in function. Then in display bringing it all together.
-	//DEBUGGING OUTPUT
-	cFragColor = lum;
-	cFragColor = distTexture;
+
+	//Decompressed
+	vec2 cUV = vTexCoord * 2.0 - 1.0;
+	vec4 cTexCol = texture(aTexture,cUV);
+	
+	//Distorted
+	vec2 dUV = barrelDist(vTexCoord);
+	vec4 dTexCol = texture(aTexture,dUV);
+
+	//Decompressed & Distorted
+	vec2 cdUV = barrelDist(cUV);
+	vec4 cdTexCol = texture(aTexture, cdUV);
+
+	cFragColor = calcFinalCol(texCol,cTexCol,dTexCol,cdTexCol,magnitude, uTime);
 }
