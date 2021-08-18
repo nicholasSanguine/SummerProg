@@ -1,0 +1,10 @@
+#version 450
+
+layout(binding = 0)
+	uniform sampler2D uAudio;
+//Binding an audio to this while at the top of the pipeline gives our pipeline it's audio by returning uAudio.
+//Technically this isn't needed on it's own as a holder of audio but without it none plays.
+vec2 mainSound()
+{
+	return uAudio;
+}
