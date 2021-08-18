@@ -4,9 +4,41 @@ layout(location = 0)
 	out vec4 cFragColor;
 		
 in vec2 vTexCoord;
-	uniform sampler2D uAudio;
+uniform sampler2D uAudio;
+uniform bvec4 uKeyWASD;
 uniform vec2 uResolution;
+uniform float uTime;
+//May have an actual name somewhere but it made hashed waves
+//in my practice with it.
+//Originally used this function here:
+//https://www.shadertoy.com/view/slXXRl
+//Purpose is taking our color we want and making colorful boxes out of it.
+//if you switch it to return red as it is and distort green & blue the box
+//will show a bright blue sphere in our case with the same black lines and 
+//deep reds where it was blue before.
+vec3 hashedWave(vec3 col, float time, float magnitude)
+{
+    
+    //Only real edit here is compressing our cos & making a one line return
+    return vec3(cos(time * col.rg * magnitude) * 0.5 + 0.5,col.b);
+//    return vec3(col.r, cos(time * col.gb * magnitude) * 0.5 + 0.5);
+}
 
+
+//https://www.geeks3d.com/20140213/glsl-shader-library-fish-eye-and-dome-and-barrel-distortion-post-processing-filters/2/
+vec2 barrelDist(vec2 loc)
+{
+	float theta = atan(loc.y,loc.x);
+	float radius = length(loc);
+	//Normal equation uses pow(radius,x) I think to the pow
+	//of two is enough.
+	radius = radius * radius;
+	loc.x = radius * cos(theta);
+	loc.y = radius * sin(theta);
+	return 0.5 * (loc + 1.0);
+}
+
+//Very similar to lerp in formula, practically the exact same output
 vec4 alterCol(float mixVar)
 {
 	vec4 coolCol = vec4(0.0,0.5,1.0,1.0);
@@ -18,13 +50,6 @@ vec4 alterCol(float mixVar)
 //	return mix(coolCol,warmCol,mixVar);
 }
 
-//lerp formula found quick was a +(b-a ) * x
-vec4 alterColTwo(float lerpVar)
-{
-	vec4 coolCol = vec4(0.0,0.5,1.0,1.0);
-	vec4 warmCol = vec4(1.0,0.5,0.0,1.0);
-	return coolCol + (warmCol - coolCol) * lerpVar;
-}
 //https://en.wikipedia.org/wiki/Linear_interpolation
 //precise form lerp
 //whenever t = 1 it shows col1
@@ -35,26 +60,51 @@ vec4 lerpCol(float t)
 	vec4 warmCol = vec4(1.0,0.5,0.0,1.0);
 	return (1.0 - t) * coolCol + t * warmCol;
 }
-//Using consistent audios of varying hz the sphere oddly enough has a hard
-//time with anything over 1khz so far within my testing. With the current
-//setup we see more tearing with pink noise that may be due to the small
-//gaps in between pieces of it. 
-// 1kHz seems to show the nicest fluctuation in our sphere
-//50hz despite being our lowest value before post processing is my least
-//favorite with two rapidly flashing quarters is unappealing.
-//It simply does this too quickly to give off a desired look and gives
-//a nice show of the floor of our current processing.
-//100Hz I would say is the lowest I would run with my current setup.
-//You can see calm movement of the middle bar and more moderate flashing
-//in the stable 100Hz range. I am going to think of a solution to the
-//current issue though.
+vec4 calcColor(vec4 distorted, vec4 compressed, vec4 normal, float time)
+{
+    //W
+	if(uKeyWASD.x)
+	{
+	//Distorted - Output
+	//return lerpCol(distorted.x);
+	//return vec4(distorted.x);
+	//return  alterCol(distorted.x);
+	return vec4(hashedWave(vec3(distorted.x), time, 0.25),1.0);
+	}
+	//A
+	else if(uKeyWASD.y)
+	{
+	//Compressed - Output
+	return lerpCol(compressed.x);
+	return alterCol(compressed.x);
+	return vec4(hashedWave(vec3(compressed.x), time, 0.25),1.0);
+	}
+	//S
+	else if(uKeyWASD.z)
+	{
+	//Decompressed - Output
+	return lerpCol(normal.x);
+	//return alterCol(normal.x);
+	return vec4(hashedWave(vec3(normal.x), time, 0.25),1.0);
+	}
+	else
+	return vec4(normal.x);
+}
 void main()
 {
-	//this is already put 0 to 1
+	//https://shadered.org/docs/objects.html?highlight=audio
+	//tool used to verify my audio wavelengths where at least close
+	//to their displayed point.
 	//https://academo.org/demos/spectrum-analyzer/
+	vec2 cTexCoord = vTexCoord * 2.0 -1.0;
+	vec2 distCoord = barrelDist(cTexCoord);
+	//Distorted
+	vec4 dAudioTexture =vec4(texture(uAudio, distCoord).x);
+	//Compress
 	vec4 audioTexture = vec4(texture(uAudio, vTexCoord).x);
-	cFragColor = vec4(audioTexture.x, 0.0,0.0,1.0); 
-//	cFragColor = alterCol(audioTexture.x);
-//	cFragColor = alterColTwo(audioTexture.x);
-	cFragColor = lerpCol(audioTexture.x);
+	//Decompressed
+	vec4 cAudioTexture = vec4(texture(uAudio, cTexCoord).x);
+	
+	cFragColor = calcColor(dAudioTexture, audioTexture, cAudioTexture, uTime);
+
 }
