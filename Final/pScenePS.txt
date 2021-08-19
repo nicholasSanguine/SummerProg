@@ -67,28 +67,30 @@ vec4 calcColor(vec4 distorted, vec4 compressed, vec4 normal, float time)
 	{
 	//Distorted - Output
 	//return lerpCol(distorted.x);
-	//return vec4(distorted.x);
+	return vec4(distorted.x);
 	//return  alterCol(distorted.x);
-	return vec4(hashedWave(vec3(distorted.x), time, 0.25),1.0);
+	//return vec4(hashedWave(vec3(distorted.x), time, 0.25),1.0);
 	}
 	//A
 	else if(uKeyWASD.y)
 	{
 	//Compressed - Output
-	return lerpCol(compressed.x);
-	return alterCol(compressed.x);
-	return vec4(hashedWave(vec3(compressed.x), time, 0.25),1.0);
+	return vec4(compressed.x);
+	//return lerpCol(compressed.x);
+	//return alterCol(compressed.x);
+	//return vec4(hashedWave(vec3(compressed.x), time, 0.25),1.0);
 	}
 	//S
 	else if(uKeyWASD.z)
 	{
 	//Decompressed - Output
-	return lerpCol(normal.x);
+
 	//return alterCol(normal.x);
+	return vec4(normal.x);
 	return vec4(hashedWave(vec3(normal.x), time, 0.25),1.0);
 	}
-	else
-	return vec4(normal.x);
+	return lerpCol(normal.x);
+	
 }
 void main()
 {
