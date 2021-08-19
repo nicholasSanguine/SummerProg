@@ -35,7 +35,7 @@ vec2 barrelDist(vec2 loc)
 }
 
 
-vec4 calcFinalCol(vec4 texCol,vec4 cTexCol, vec4 dTexCol,vec4 cdTexCol, float magnitude, float time)
+vec4 calcFinalCol(vec4 texCol,vec4 cTexCol, vec4 dTexCol,vec4 cdTexCol, float magnitude, float time, float mixVar)
 {
 	//Base vari
 	vec4 lum = vec4(giveLum(texCol));
@@ -74,7 +74,21 @@ vec4 calcFinalCol(vec4 texCol,vec4 cTexCol, vec4 dTexCol,vec4 cdTexCol, float ma
 //	return hashed;
 //	return dHashed;
 //	return cHashed;
-//	return cdHashed;
+//w	return cdHashed;
+
+// Mixing values for a more interesting return. *SOME ARE VERY BAD PRESENTED*
+// When our pulsing time is not 1.0 or 0.0 you can hear both audio lengths together a bit.
+	return cdHashed * (1.0 - mixVar) + dTexCol *mixVar;
+	return cdHashed * (1.0 - mixVar) + cdTexCol *mixVar;
+	return cdHashed * (1.0 - mixVar) + cTexCol *mixVar;
+	return cdHashed * (1.0 - mixVar) + texCol *mixVar;
+	return cdHashed * (1.0 - mixVar) + cdLum *mixVar;
+	return cdHashed * (1.0 - mixVar) + lum *mixVar;
+	return cdHashed * (1.0 - mixVar) + cLum *mixVar;
+	return cdHashed * (1.0 - mixVar) + dLum *mixVar;
+	return cdHashed * (1.0 - mixVar) + cdLum *mixVar;
+	return cdHashed * (1.0 - mixVar) + dHashed *mixVar;
+	return cdHashed * (1.0 - mixVar) + cHashed *mixVar;
 }
 
 
@@ -98,6 +112,6 @@ void main()
 	//Decompressed & Distorted
 	vec2 cdUV = barrelDist(cUV);
 	vec4 cdTexCol = texture(aTexture, cdUV);
-
-	cFragColor = calcFinalCol(texCol,cTexCol,dTexCol,cdTexCol,magnitude, uTime);
+	
+	cFragColor = calcFinalCol(texCol,cTexCol,dTexCol,cdTexCol,magnitude, uTime, sin(uTime) * 0.5 + 0.5);
 }
